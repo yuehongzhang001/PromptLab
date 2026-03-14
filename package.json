@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node src/cli/index.js",
+    "web": "node src/cli/index.js web",
     "check": "node src/cli/index.js help",
     "test": "node --test"
   }

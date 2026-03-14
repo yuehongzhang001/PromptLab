@@ -1,30 +1,45 @@
 # PromptLab MVP 实现方案（JSON 本地快照版）
 
+> 说明：本文档已按当前仓库实现状态更新。已落地能力与后续规划会明确分开，避免将未实现内容误写成现状。
+
 ## 1. 结论（收敛版）
 
 - PromptLab 是**本地工具**，不需要服务器部署。
 - 不做：账号、登录、云协作。
 - 数据存储：**JSON 文件**（不使用数据库）。
-- 核心能力：结构化 Prompt（结构可自定义）+ 版本快照 + 三层 Diff + AI 优化。
+- 当前核心能力：结构化 Prompt（结构可自定义）+ 版本快照 + 本地 Web UI。
 - **MVP 不提供独立 Project 管理界面**，直接在单一工作区管理多个 Prompt。
 - 但底层保留 **workspace / collection 扩展余地**。
 
 ---
 
-## 2. 开发策略（避免过重）
+## 2. 当前状态
 
-> 不要太早同时做完整 CLI + Web UI。
+当前已经完成：
 
-MVP 执行顺序：
+1. `core`
+   - 本地工作区初始化
+   - Prompt 元信息、`current.json`、版本快照存储
+   - Prompt 编译与基础校验
+   - 回收站、恢复、永久删除
+2. `web ui`
+   - Prompt 列表与创建
+   - 区块编辑
+   - 历史版本查看
+   - JSON 导入
+   - 打开源文件夹
+3. `cli`
+   - `init`
+   - `list`
+   - `create`
+   - `save`
+   - `web`
 
-1. `core`（文件存储、编译、校验、版本、diff）
-2. `web ui`（主要产品入口）
-3. `cli`（仅保留少量调试与批处理命令）
+当前尚未完成：
 
-说明：
-
-- 先验证可视化体验（结构编辑、版本查看、diff 可读性）。
-- CLI 第一版不做完整产品化命令集。
+- Diff 视图
+- AI 优化
+- 导出 `exports/latest.md`
 
 ---
 
@@ -35,7 +50,7 @@ MVP 执行顺序：
 - Prompt 索引：`~/.promptlab/prompts/index.json`
 - 每个 Prompt 一个目录：`~/.promptlab/prompts/<prompt-id>/`
 
-推荐目录结构：
+当前目录结构：
 
 ```txt
 ~/.promptlab/
@@ -48,17 +63,13 @@ MVP 执行顺序：
       versions/
         v1.json
         v2.json
-      exports/
-        latest.md
-      optimizations/
-        opt-20260313-001.json
 ```
 
 说明：
 
 - `current.json` **不是可选项，是必需文件**。
 - `versions/vN.json` 是不可变快照。
-- 回滚是将历史版本恢复到 `current.json` 并可另存为新版本。
+- 当前实现中已支持“查看历史版本”，但尚未提供“恢复某个历史版本到 current.json”的独立操作。
 
 ---
 
@@ -75,8 +86,8 @@ MVP 执行顺序：
 - `createdAt`
 - `updatedAt`
 - `latestVersion`
-- `defaultStructureTemplateId`（可选）
 - `tags`（可选）
+- `deletedAt`（软删除时存在）
 
 > 不在 `prompt.json` 存 structure/content，避免与 `current.json`、`versions/*.json` 重叠。
 
@@ -108,20 +119,21 @@ MVP 执行顺序：
 
 ---
 
-## 5. 结构化 Prompt（非固定模板）
+## 5. 结构化 Prompt（当前实现）
 
 - 结构由用户定义，不内置固定字段。
 - section 最小字段建议：
   - `id`
   - `name`
-  - `type`（预留，MVP 可仅支持 `text` / `list`）
+  - `type`（当前持久化为 `text`，保留字段便于后续扩展）
   - `order`
-  - `required`
   - `description`（可选）
 
-MVP 范围控制：
+当前范围控制：
 
-- 优先只支持 `text` 与 `list`。
+- Web UI 当前只暴露 `text` 区块。
+- 区块标题可为空。
+- 系统仅保证至少保留一个区块。
 - 不做复杂 section 类型系统（schema/formula 等）。
 
 ---
@@ -135,9 +147,8 @@ MVP 范围控制：
 规则：
 
 - 按 `order` 升序遍历 section
-- 标题使用 `section.name`
+- 当 `section.name` 非空时输出标题
 - 分隔线固定 `----------------`
-- `list` 类型按编号输出
 
 关于 `compiledPrompt`：
 
@@ -147,7 +158,7 @@ MVP 范围控制：
 
 ---
 
-## 7. Diff 设计（Prompt 专用三层）
+## 7. Diff 设计（后续规划）
 
 Diff 不仅是“文本 vs JSON”，而是三层：
 
@@ -165,14 +176,9 @@ Diff 不仅是“文本 vs JSON”，而是三层：
 
 ---
 
-## 8. AI 优化（基于 current，需先配置 API Key）
+## 8. AI 优化（后续规划）
 
 在 Settings 页面中，用户填写 API Key 后即可启用 AI 优化。
-
-当前支持：
-
-- OpenAI API Key
-- Gemini API Key
 
 输入：当前 `structure` + 当前 `content` + goal
 
@@ -188,9 +194,9 @@ Diff 不仅是“文本 vs JSON”，而是三层：
 
 ---
 
-## 9. 导出能力（新增）
+## 9. 导出能力（后续规划）
 
-MVP 增加一个轻量导出能力：
+后续可增加一个轻量导出能力：
 
 - 导出最新编译结果到 `exports/latest.md`
 - UI 提供“一键复制 compiled prompt”
@@ -199,4 +205,4 @@ MVP 增加一个轻量导出能力：
 
 ## 10. 一句话建议
 
-**先把 PromptLab 做成“单工作区 + JSON 快照 + Web 主入口”的结构化提示词工具；CLI 先做轻量调试，后续再增强。**
+**当前应继续沿着“单工作区 + JSON 快照 + Web 主入口”的方向补齐版本恢复、Diff、导出和 AI 优化，而不是再扩大基础模型复杂度。**

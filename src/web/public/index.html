@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PromptLab Web UI</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <p class="eyebrow">PromptLab</p>
+          <h1>Web UI</h1>
+          <p class="muted">本地 Prompt 工作台</p>
+        </div>
+
+        <form id="create-form" class="panel stack">
+          <h2>新建 Prompt</h2>
+          <label>
+            <span>名称</span>
+            <input name="name" placeholder="Customer Support" required />
+          </label>
+          <label>
+            <span>描述</span>
+            <input name="description" placeholder="可选" />
+          </label>
+          <button type="submit">创建</button>
+        </form>
+
+        <section class="panel list-panel">
+          <div class="section-head">
+            <h2>Prompts</h2>
+            <button id="refresh-list" type="button" class="ghost">刷新</button>
+          </div>
+          <div id="prompt-list" class="prompt-list"></div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">Editor</p>
+            <h2 id="prompt-title">选择一个 Prompt</h2>
+            <p id="prompt-meta" class="muted">创建后即可在这里编辑 current.json 内容并保存版本。</p>
+            <div id="version-mode-banner" class="version-banner hidden">
+              <span id="version-mode-label">当前正在查看历史版本</span>
+              <button id="back-to-current" type="button" class="ghost">返回当前草稿</button>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <button id="open-folder" type="button" class="ghost" disabled>打开源文件夹</button>
+            <button id="save-current" type="button" disabled>保存草稿</button>
+            <button id="save-version" type="button" class="accent" disabled>生成版本</button>
+            <button id="trash-prompt" type="button" class="danger" disabled>删除 Prompt</button>
+          </div>
+        </section>
+
+        <section class="workspace">
+          <div class="panel editor-panel">
+            <div class="section-head">
+              <h2>内容编辑</h2>
+              <div class="hero-actions">
+                <button id="import-json" type="button" class="ghost" disabled>JSON 导入</button>
+                <button id="add-section" type="button" class="ghost" disabled>新增区块</button>
+                <span id="status" class="status">未连接</span>
+              </div>
+            </div>
+            <div id="editor-fields" class="stack empty">选择左侧 Prompt 开始编辑</div>
+          </div>
+
+          <div class="panel preview-panel">
+            <div class="section-head">
+              <h2>Compiled Prompt</h2>
+            </div>
+            <pre id="compiled-preview" class="preview empty">暂无内容</pre>
+          </div>
+        </section>
+
+        <section class="panel versions-panel">
+          <div class="section-head">
+            <h2>版本历史</h2>
+          </div>
+          <div id="version-list" class="version-list empty">暂无版本</div>
+        </section>
+
+        <section class="panel versions-panel">
+          <div class="section-head">
+            <h2>回收站</h2>
+          </div>
+          <div id="trash-list" class="version-list empty">回收站为空</div>
+        </section>
+      </main>
+    </div>
+
+    <div id="import-modal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close-import="true"></div>
+      <section class="modal-card panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Import</p>
+            <h2>导入 JSON 提示词</h2>
+          </div>
+          <button id="close-import" type="button" class="ghost">关闭</button>
+        </div>
+
+        <div class="stack">
+          <label>
+            <span>粘贴 JSON</span>
+            <textarea id="import-json-input" class="import-textarea" placeholder='{"sections":[{"title":"Role","content":"You are..."},{"title":"Task","content":"Rewrite the prompt."}]}'></textarea>
+          </label>
+
+          <div class="sample-box">
+            <div class="section-head">
+              <h2>样本格式</h2>
+              <button id="copy-import-sample" type="button" class="ghost">复制样本</button>
+            </div>
+            <pre id="import-sample" class="sample-code">{
+  "sections": [
+    {
+      "title": "Role",
+      "content": "You are a senior prompt engineer."
+    },
+    {
+      "title": "Task",
+      "content": "Rewrite the user's prompt into a cleaner production version."
+    },
+    {
+      "title": "Constraints",
+      "content": "Keep the intent unchanged.\nRemove redundancy.\nOutput only the final prompt."
+    },
+    {
+      "title": "",
+      "content": "Additional context block without title."
+    }
+  ]
+}</pre>
+          </div>
+
+          <p class="muted">支持字段：`sections`、`title`、`content`。`title` 可为空；所有区块都会按 `text` 处理。</p>
+
+          <div class="hero-actions">
+            <button id="apply-import" type="button" class="accent">导入为区块</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

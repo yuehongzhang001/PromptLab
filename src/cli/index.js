@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { createPrompt, initWorkspace, listPrompts, saveVersion } from '../core/store.js';
+import { startWebServer } from '../web/server.js';
 
 function printHelp() {
-  console.log(`PromptLab (MVP dev CLI)\n\nCommands:\n  help\n  init\n  list\n  create <id> <name> [description]\n  save <id> [changeNote]\n`);
+  console.log(`PromptLab (MVP dev CLI)\n\nCommands:\n  help\n  init\n  list\n  create <name> [description]\n  create <id> <name> [description]\n  save <id> [changeNote]\n  web [port]\n`);
 }
 
 async function main() {
@@ -32,8 +33,17 @@ async function main() {
   }
 
   if (cmd === 'create') {
-    const [id, name, description] = args;
-    if (!id || !name) throw new Error('usage: create <id> <name> [description]');
+    let id;
+    let name;
+    let description;
+
+    if (args.length >= 2 && /^[a-z0-9-]+$/.test(args[0])) {
+      [id, name, description] = args;
+    } else {
+      [name, description] = args;
+    }
+
+    if (!name) throw new Error('usage: create <name> [description]\n   or: create <id> <name> [description]');
     const meta = await createPrompt({ id, name, description });
     console.log(`created: ${meta.id}`);
     return;
@@ -44,6 +54,17 @@ async function main() {
     if (!id) throw new Error('usage: save <id> [changeNote]');
     const v = await saveVersion(id, note || 'manual save');
     console.log(`saved: ${v.id}`);
+    return;
+  }
+
+  if (cmd === 'web') {
+    const [portArg] = args;
+    const port = portArg ? Number(portArg) : 3000;
+    if (!Number.isInteger(port) || port <= 0) {
+      throw new Error('usage: web [port]');
+    }
+    await startWebServer({ port, host: '127.0.0.1' });
+    console.log(`web ui running: http://127.0.0.1:${port}`);
     return;
   }
 

@@ -15,7 +15,12 @@ export function compilePrompt(structure, content) {
       body = String(value);
     }
 
-    blocks.push(`${section.name}\n----------------\n${body}`);
+    if (section.name) {
+      blocks.push(`${section.name}\n----------------\n${body}`);
+      continue;
+    }
+
+    blocks.push(body);
   }
 
   return blocks.join('\n\n');

@@ -6,11 +6,11 @@ test('validateCurrentDoc passes valid document', () => {
   const doc = {
     schemaVersion: 1,
     structure: [
-      { id: 'task', name: 'Task', type: 'text', order: 1, required: true },
-      { id: 'rules', name: 'Rules', type: 'list', order: 2, required: false }
+      { id: 'section-001', name: '', type: 'text', order: 1 },
+      { id: 'rules', name: 'Rules', type: 'list', order: 2 }
     ],
     content: {
-      task: 'Do it',
+      'section-001': 'Do it',
       rules: ['A', 'B']
     }
   };
@@ -18,12 +18,12 @@ test('validateCurrentDoc passes valid document', () => {
   assert.doesNotThrow(() => validateCurrentDoc(doc));
 });
 
-test('validateCurrentDoc rejects missing required content', () => {
+test('validateCurrentDoc rejects empty structure', () => {
   const doc = {
     schemaVersion: 1,
-    structure: [{ id: 'task', name: 'Task', type: 'text', order: 1, required: true }],
+    structure: [],
     content: {}
   };
 
-  assert.throws(() => validateCurrentDoc(doc), /required section 缺失内容: task/);
+  assert.throws(() => validateCurrentDoc(doc), /至少保留一个区块/);
 });
